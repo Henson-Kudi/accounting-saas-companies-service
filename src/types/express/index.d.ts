@@ -3,11 +3,13 @@ import {
     Request as ExpressRequest,
 } from "express";
 import winston from "winston";
+import RepositoryLocator from "../RepositoryLocator";
 
 declare module "express" {
     export interface Request extends ExpressRequest {
         user?: any; // Define the type for your authenticated user
         dbConn?: mongoose.Connection;
+        repositories?: RepositoryLocator;
     }
 
     export interface Response extends ExpressResponse {

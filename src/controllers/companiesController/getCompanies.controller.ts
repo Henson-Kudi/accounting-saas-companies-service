@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { FilterQuery, QueryOptions } from "mongoose";
-import { CompaniesRepo } from "../../use-cases";
 import CompanySchema from "../../schema-entities/Company.schema";
 
 export default async function getCompanies(
@@ -8,8 +7,12 @@ export default async function getCompanies(
     res: Response
 ): Promise<Response> {
     try {
-        const params = req?.query?.params as unknown as FilterQuery<CompanySchema>;
-        const options = req.query?.options as unknown as QueryOptions<CompanySchema>;
+        const { CompaniesRepo } = req.repositories!;
+        
+        const params = req?.query
+            ?.params as unknown as FilterQuery<CompanySchema>;
+        const options = req.query
+            ?.options as unknown as QueryOptions<CompanySchema>;
 
         const companies = await CompaniesRepo.findCompanies(
             params,

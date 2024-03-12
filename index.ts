@@ -1,11 +1,10 @@
 import "dotenv/config";
-import { startServer } from "./src";
+import startServer from "./src";
 import connectToDb from "./src/db/index.db";
-import { Server } from "http";
+import RepositoryLocator from "./src/use-cases";
+import Database from "./src/data-access";
 
-let server: Server | undefined;
-
-const initialiseServer = async () => {
+(async () => {
     // init db connection before running server
     const dbUrl = process.env.DB_URL;
 
@@ -16,16 +15,8 @@ const initialiseServer = async () => {
     await connectToDb(dbUrl);
 
     // start server (Ensure db is connected first before running the server)
-    server = startServer();
-
-    return server;
-};
-
-(async () => {
-    await initialiseServer();
+    // server =
+    const app = startServer(new RepositoryLocator(new Database()));
 
     // SETUP LISTENERS TO GRACEFULLY SHUTDOWN THE SYSTEM HERE
 })();
-
-// EXPORT SERVER FOR USE BY OTHER FILES(MAINLY TEST  FILES FOR NOW)
-export { server };

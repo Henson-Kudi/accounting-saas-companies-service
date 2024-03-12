@@ -1,8 +1,9 @@
 import { FilterQuery, ProjectionType, QueryOptions } from "mongoose";
-import { CompaniesDb } from "../../data-access";
 import CompanySchema from "../../schema-entities/Company.schema";
+import IDatabase from "../../types/database";
 
 export async function findCompanies(
+    { CompaniesDb }: IDatabase,
     params?: FilterQuery<CompanySchema>,
     projection?: ProjectionType<CompanySchema>,
     options?: QueryOptions<CompanySchema>
@@ -16,6 +17,7 @@ export async function findCompanies(
 }
 
 export async function findOneCompany(
+    { CompaniesDb }: IDatabase,
     params: FilterQuery<CompanySchema>,
     projection?: ProjectionType<CompanySchema>,
     options?: QueryOptions<CompanySchema>
@@ -33,6 +35,7 @@ export async function findOneCompany(
 }
 
 export async function findCompanyById(
+    { CompaniesDb }: IDatabase,
     companyId: any,
     projection?: ProjectionType<CompanySchema>,
     options?: QueryOptions<CompanySchema>

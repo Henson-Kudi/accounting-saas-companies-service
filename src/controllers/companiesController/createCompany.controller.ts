@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import companySchema from "../../utils/validators/company.validator";
-import { CompaniesRepo } from "../../use-cases";
 import Joi from "joi";
 import CompanySchema from "../../schema-entities/Company.schema";
 
@@ -9,6 +8,8 @@ export default async function createCompany(
     res: Response
 ): Promise<Response> {
     try {
+        const { CompaniesRepo } = req.repositories!;
+        
         console.log("creating company");
         // make sure to validate especially req.body to ensure data correctness
 
@@ -17,7 +18,7 @@ export default async function createCompany(
         // validate data with joi
         const valide = await companySchema.validateAsync(data);
 
-        const newCompany = new CompanySchema(data)
+        const newCompany = new CompanySchema(data);
 
         const created = await CompaniesRepo.createCompany(newCompany);
 

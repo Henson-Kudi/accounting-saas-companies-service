@@ -15,13 +15,16 @@ export default async function registerOwner(
     res: Response
 ): Promise<Response> {
     try {
+        const { CompaniesRepo } = req.repositories!;
         const data = req.body;
         // validate data with joi to ensure it is valid then pass to business logic handler
         const valid = await usersJoiSchema.validateAsync(data, {
             abortEarly: false,
         });
-        console.log(data);
-        return res.success!(data);
+
+        const created = await CompaniesRepo.createCompany(data);
+
+        return res.success!({ data: created });
     } catch (err: any) {
         // If validation error, return badRequest res
         if (Joi.isError(err)) {
