@@ -1,8 +1,9 @@
 import "dotenv/config";
 import startServer from "./src";
 import connectToDb from "./src/db/index.db";
-import RepositoryLocator from "./src/use-cases";
 import Database from "./src/data-access";
+import Services from "./src/types/services";
+import { rabbitMQService } from "./src/config/amqp";
 
 (async () => {
     // init db connection before running server
@@ -15,8 +16,10 @@ import Database from "./src/data-access";
     await connectToDb(dbUrl);
 
     // start server (Ensure db is connected first before running the server)
-    // server =
-    const app = startServer(new RepositoryLocator(new Database()));
+    const services: Services = {
+        rabbitMQService,
+    };
+    const app = startServer(new Database(), services);
 
     // SETUP LISTENERS TO GRACEFULLY SHUTDOWN THE SYSTEM HERE
 })();

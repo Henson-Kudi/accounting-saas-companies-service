@@ -1,0 +1,13 @@
+{
+    "DEAD_LETTER": {
+        "name": "DEAD_LETTER-EXCHANGE"
+    },
+    "COMPANY_EXCHANGE": {
+        "name": "companies-exchange",
+        "routeKeys": {
+            "companyCreated": "company.created",
+            "companyUpdated": "company.updated",
+            "companyDeleted": "company.deleted"
+        }
+    }
+}

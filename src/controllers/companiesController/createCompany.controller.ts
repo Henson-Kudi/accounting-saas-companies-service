@@ -1,7 +1,13 @@
 import { Request, Response } from "express";
-import companySchema from "../../utils/validators/company.validator";
-import Joi from "joi";
-import CompanySchema from "../../schema-entities/Company.schema";
+import Joi from "@hapi/joi";
+import { isValidObjectId } from "mongoose";
+import {
+    ForbiddenError,
+    ServerError,
+    Success,
+    ValidationError,
+} from "../../utils/responseData";
+import Error from "../../utils/error";
 
 export default async function createCompany(
     req: Request,
@@ -9,32 +15,42 @@ export default async function createCompany(
 ): Promise<Response> {
     try {
         const { CompaniesRepo } = req.repositories!;
-        
+
+        const authUser = req.user!;
+
+        if (!authUser || !authUser?.id || !isValidObjectId(authUser?.id)) {
+            throw new ForbiddenError();
+        }
+
         console.log("creating company");
         // make sure to validate especially req.body to ensure data correctness
 
-        const data = req.body;
+        const data = Array.isArray(req.body)
+            ? req.body?.map((item) => ({ ...item, owner: authUser?.id }))
+            : {
+                  ...req.body,
+                  owner: authUser?.id,
+              };
 
-        // validate data with joi
-        const valide = await companySchema.validateAsync(data);
+        const created = await CompaniesRepo.createCompany(data);
 
-        const newCompany = new CompanySchema(data);
-
-        const created = await CompaniesRepo.createCompany(newCompany);
-
-        return res.success!({
-            data: created,
-            code: 201,
-        });
+        return res.success!(
+            new Success({
+                data: created,
+            })
+        );
     } catch (err: any) {
-        console.error(err);
+        // console.error(err);
         if (Joi.isError(err)) {
-            return res.badRequest!({ code: 422, message: err?.details });
+            return res.badRequest!(
+                new ValidationError(err?.message, err?.details)
+            );
         }
 
-        return res.internalServerError!({
-            data: err?.toString(),
-            message: err?.message,
-        });
+        if (err instanceof Error) {
+            return res.badRequest!(err);
+        }
+
+        return res.internalServerError!(new ServerError(err));
     }
 }

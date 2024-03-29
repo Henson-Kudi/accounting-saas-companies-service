@@ -3,12 +3,14 @@ import morgan from "morgan";
 import responseHandler from "./utils/responseHandler";
 import router from "./routes";
 import repositoriesInjector from "./middlewares/repositoriesInjector";
-import RepositoryLocator from "./types/RepositoryLocator";
+import IDatabase from "./types/database";
+import Services from "./types/services";
+import authenticationMiddleWare from "./middlewares/authentication";
 
 const PORT = process.env.PORT || 5001;
 
 // This function will start our express app and inject database repositories. This will greately help for mocking our databases for tests
-const startApp = (repositoryLocator: RepositoryLocator) => {
+const startApp = (database: IDatabase, services?: Services) => {
     const app = express();
 
     // use express.json
@@ -26,10 +28,13 @@ const startApp = (repositoryLocator: RepositoryLocator) => {
     );
 
     // INJECT REPOSITORIES
-    app.use(repositoriesInjector(repositoryLocator));
+    app.use(repositoriesInjector(database, services));
 
     // INTITIALISE RESPONSEHANDLER
     app.use(responseHandler);
+
+    // Authenticate all requests to this service
+    app.use(authenticationMiddleWare);
 
     // Define routes here
     app.use("/api/companies", router);

@@ -13,14 +13,31 @@ import {
     findCompanyById,
     findOneCompany,
 } from "./findCompanies";
+import Services from "../../types/services";
+import companyJoiSchema from "../../utils/validators/company.validator";
 
 export default class CompaniesRepo implements ICompaniesRepo {
-    constructor(private database: IDatabase) {}
+    constructor(private database: IDatabase, private services?: Services) {}
 
     async createCompany(
-        data: CompanySchema | CompanySchema[]
+        data: any
     ): Promise<FlattenMaps<CompanySchema | CompanySchema[]> | null> {
-        const createdCompany = await createCompany(this.database, data);
+        // validate data with joi
+        await Promise.all(
+            (Array.isArray(data) ? data : [data]).map(
+                async (item: any) => await companyJoiSchema.validateAsync(item)
+            )
+        );
+
+        const newCompany = Array.isArray(data)
+            ? data?.map((item: any) => new CompanySchema(item))
+            : new CompanySchema(data);
+
+        const createdCompany = await createCompany(
+            this.database,
+            newCompany,
+            this.services
+        );
         return createdCompany;
     }
 

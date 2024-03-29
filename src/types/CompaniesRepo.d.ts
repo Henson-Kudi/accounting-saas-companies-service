@@ -5,7 +5,6 @@ import {
     QueryOptions,
 } from "mongoose";
 import CompanySchema from "../schema-entities/Company.schema";
-import IDatabase from "./database";
 
 export default interface ICompaniesRepo {
     createCompany(

@@ -15,32 +15,48 @@ export default Joi.object({
         line2: Joi.string().optional().allow(null).allow(""),
         line3: Joi.string().optional().allow(null).allow(""),
     }),
-    contacts: Joi.array().items({
-        type: Joi.string()
-            .required()
-            .valid("Mobile", "Home", "Work", "WhatsApp", "Main"),
-        phone: Joi.string()
-            .required()
-            .pattern(/^\+\d{1,4}\d{6,14}$/)
-            .message(
-                'Invalid phone number format. It must start with a "+" and include a valid country code.'
-            ),
-    }),
+    contacts: Joi.array()
+        .min(1)
+        .items({
+            type: Joi.string()
+                .required()
+                .valid("Mobile", "Home", "Work", "WhatsApp", "Main"),
+            phone: Joi.string()
+                .required()
+                .pattern(/^\+\d{1,4}\d{6,14}$/)
+                .message(
+                    'Invalid phone number format. It must start with a "+" and include a valid country code.'
+                ),
+        }),
     password: Joi.string()
         .required()
         .min(8)
         .max(30)
         .pattern(
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()-_=+{};:'",<.>/?]).{8,32}$/
         )
         .message(
-            "Invalid password format. It must be at least 8 characters and contain at least one lowercase letter, one uppercase letter, one special character, and one number."
+            "Invalid password format. It must be at least 8 characters and contain at least one lowercase letter, one uppercase letter,special character, and one number."
         ),
     repeatPassword: Joi.string()
         .valid(Joi.ref("password"))
         .required()
         .messages({ "any.only": "passwords do not match" }),
-});
+})
+    .messages({
+        "contacts.atLeastOneMainContact":
+            'At least one contact with type "Main" must exist.',
+    })
+    .custom((value, helpers) => {
+        const hasMainContact = value?.contacts?.some(
+            (contact: any) => contact.type === "Main"
+        );
+
+        if (!hasMainContact) {
+            return helpers.error("contacts.atLeastOneMainContact");
+        }
+        return value;
+    });
 
 export const updateSchema = Joi.object({
     name: Joi.string()

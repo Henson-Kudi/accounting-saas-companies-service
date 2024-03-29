@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import usersJoiSchema from "../../utils/validators/owners.validator";
-import Joi from "joi";
+import Joi from "@hapi/joi";
 import { errorLogger } from "../../utils/logger";
 
 /**
@@ -15,14 +14,12 @@ export default async function registerOwner(
     res: Response
 ): Promise<Response> {
     try {
-        const { CompaniesRepo } = req.repositories!;
+        const { UsersRepo } = req.repositories!;
         const data = req.body;
-        // validate data with joi to ensure it is valid then pass to business logic handler
-        const valid = await usersJoiSchema.validateAsync(data, {
-            abortEarly: false,
-        });
 
-        const created = await CompaniesRepo.createCompany(data);
+        // make sure to consolidate all data before passing to repo (e.g authUser, etc)
+
+        const created = await UsersRepo.createUser(data);
 
         return res.success!({ data: created });
     } catch (err: any) {

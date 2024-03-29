@@ -9,7 +9,6 @@ export default {
         return [];
     },
     create(params: any) {
-        console.log("Running mock");
         return params;
     },
 };

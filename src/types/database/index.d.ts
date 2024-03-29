@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import CompanySchema from "../../schema-entities/Company.schema";
 
 export interface ICompaniesDb {
     findOne(

@@ -1,31 +1,49 @@
-import Joi from "joi";
+import Joi from "@hapi/joi";
 
 const schema = Joi.object({
-    name: Joi.string().required(),
-    // email: Joi.string().lowercase().email().optional().allow("").allow(null),
-    // addressLine1: Joi.string().required(),
-    // addressLine2: Joi.string().optional().allow(null).allow(""),
-    // addressLine3: Joi.string().optional().allow(null).allow(""),
+    name: Joi.string().required().min(3).max(52),
     owner: Joi.string()
         .required()
         .regex(/^[0-9a-fA-F]{24}$/)
         .message("Invalid owner id. Please pass valid id."),
-    // subScriptionStart: Joi.date().optional().allow(null),
-    // subscriptionDuration: Joi.number().optional().allow(null),
-    isActive: Joi.boolean().optional(),
-    isDeleted: Joi.boolean().optional(),
+    representative: Joi.object({
+        name: Joi.string().required(),
+        email: Joi.string().required(),
+        phone: Joi.string().required(),
+        address: Joi.string().optional(),
+        position: Joi.string().required(),
+        // add fields like name, email, etc
+    })
+        .pattern(Joi.string().required(), Joi.string().required())
+        .optional()
+        .allow("")
+        .allow(null),
+    subScription: Joi.object({
+        type: Joi.string()
+            .required()
+            .valid(...["Free", "Standard", "Pro", "Enterprise"]),
+        start: Joi.date().required(),
+        end: Joi.date().when("type", {
+            is: "Free",
+            then: Joi.date().optional(),
+            otherwise: Joi.date().required(),
+        }),
+    }).required(),
 });
 
 export const updateSchema = Joi.object({
     name: Joi.string().optional(),
-    // email: Joi.string().lowercase().email().optional().allow("").allow(null),
-    // addressLine1: Joi.string().optional(),
-    // addressLine2: Joi.string().optional().allow(null).allow(""),
-    // addressLine3: Joi.string().optional().allow(null).allow(""),
-    // subScriptionStart: Joi.date().optional().allow(null),
-    // subscriptionDuration: Joi.number().optional().allow(null),
-    isActive: Joi.boolean().optional(),
-    isDeleted: Joi.boolean().optional(),
+    representative: Joi.object({
+        name: Joi.string().optional(),
+        email: Joi.string().optional(),
+        phone: Joi.string().optional(),
+        address: Joi.string().optional(),
+        position: Joi.string().optional(),
+    })
+        .pattern(Joi.string().required(), Joi.string().required())
+        .optional()
+        .allow("")
+        .allow(null),
 });
 
 // No one should be able to update owner, isActive or isDeleted when trying to update company details. Instead they should make a request to a special route
