@@ -2,6 +2,8 @@ import mongoose, { FlattenMaps } from "mongoose";
 import CompanySchema from "../schema-entities/Company.schema";
 import { Company } from "../models";
 
+// DO NOT FORGET TO USE THESAME DATABASE WITH AUTH DB. sO THAT USERS (OWNERS) CAN BE USED AND POPULATED DIRECTLY. WE WOULD NOT NEED FULL OBJECT FOR REPRESENTATIVE OBJECT. JUST A USER ID WHICH CAN THEN BE POPULATED WHEN NEEDED.
+
 // Access to companies db model
 export const findOne = async function (
     params?: mongoose.FilterQuery<CompanySchema>,

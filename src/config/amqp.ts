@@ -1,6 +1,8 @@
 import * as amqp from "amqplib";
-import RabbitMqQueues from "../utils/constants/rabbitMqQueues";
-import IRabbitMQService, { ExchangeTypes } from "../types/services/rabbitmq.service";
+import RabbitMqQueues from "../utils/constants/rabbitMqQueues.json";
+import IRabbitMQService, {
+    ExchangeTypes,
+} from "../types/services/rabbitmq.service";
 
 let connection: amqp.Connection | undefined;
 
@@ -34,6 +36,7 @@ export async function closeConnection(): Promise<void> {
     }
 }
 
+// Publishing to an exchange mostly when we perform create, delete and update functionalities
 export async function publishToExchange(
     exchange: string,
     exchangeType: ExchangeTypes,
@@ -61,9 +64,14 @@ export async function publishToExchange(
     }
 }
 
+// Publishing to a queue mostly when another service requests to get information (get request)
 export async function publishToQueue(
     queue: string,
-    task: Buffer
+    task: Buffer,
+    options?: {
+        assert?: amqp.Options.AssertQueue;
+        publish?: amqp.Options.Publish;
+    }
 ): Promise<void> {
     const connection = await getConnection();
 
@@ -71,11 +79,13 @@ export async function publishToQueue(
 
     try {
         await channel.assertQueue(queue, {
-            durable: true,
+            ...options?.assert,
+            durable: options?.assert?.durable ?? true,
         });
 
         channel.sendToQueue(queue, task, {
-            persistent: true,
+            ...options?.publish,
+            persistent: options?.publish?.persistent ?? true,
         });
 
         console.log(`message published to queue: ${queue}`);
@@ -134,6 +144,7 @@ export async function registerConsumer(
             );
         }
         // process the message
+        // We need to ensure that when consuming a message, if there is a replyTo Key, we need to reply to that queue with the processed data
         channel.consume(queueName ?? queue.queue, async (msg) => {
             if (!msg) {
                 return;
@@ -216,7 +227,7 @@ function calculateBackoffDelay(
     return Math.min(baseDelay * 2 ** (attempt - 1) + jitter, MAX_BACKOFF_DELAY);
 }
 
-export const rabbitMQService: IRabbitMQService = {
+const rabbitMQService: IRabbitMQService = {
     closeConnection,
     publishToExchange,
     publishToQueue,
@@ -224,67 +235,4 @@ export const rabbitMQService: IRabbitMQService = {
     getConnection,
 };
 
-class RabbitMQService {
-    private static instance: RabbitMQService | null = null;
-    private connection: amqp.Connection | null = null;
-
-    private constructor() {
-        // private constructor to enforce the Singleton pattern
-    }
-
-    static getInstance(): RabbitMQService {
-        if (!RabbitMQService.instance) {
-            RabbitMQService.instance = new RabbitMQService();
-        }
-        return RabbitMQService.instance;
-    }
-
-    async connect(): Promise<void> {
-        if (this.connection) {
-            console.log("Connection already established.");
-            return;
-        }
-
-        try {
-            this.connection = await amqp.connect(process.env.AMQP_URL!);
-            console.log("Connected to RabbitMQ");
-        } catch (err: any) {
-            console.error("Error connecting to RabbitMQ:", err.message);
-            throw err;
-        }
-    }
-
-    async reconnect(): Promise<void> {
-        try {
-            this.connection = await amqp.connect(process.env.AMQP_URL!);
-            console.log("Reconnected to RabbitMQ");
-        } catch (err: any) {
-            console.error("Error reconnecting to RabbitMQ:", err.message);
-            throw err;
-        }
-    }
-
-    async createChannel(): Promise<amqp.Channel> {
-        try {
-            if (!this.connection) {
-                await this.reconnect();
-            }
-
-            const channel = await this.connection!.createChannel();
-            console.log("Channel created");
-            return channel;
-        } catch (err: any) {
-            console.error("Error creating channel:", err.message);
-            throw err;
-        }
-    }
-
-    async closeConnection(): Promise<void> {
-        if (this.connection) {
-            await this.connection.close();
-            console.log("Connection closed");
-        }
-    }
-}
-
-export default RabbitMQService.getInstance();
+export default rabbitMQService;

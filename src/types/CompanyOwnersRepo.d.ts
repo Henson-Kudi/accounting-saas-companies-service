@@ -1,4 +1,4 @@
-import CompanyOwnerSchema from "../schema-entities/CompanyOwner.schema";
+import CompanyOwnerSchema from "../schema-entities/CompanyStaff.schema";
 
 export default interface ICompanyOwnersRepo {
     createUser(

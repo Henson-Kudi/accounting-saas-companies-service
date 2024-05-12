@@ -1,36 +1,35 @@
 import { prop } from "@typegoose/typegoose";
 import BaseDocument from "./baseDocument";
 import mongoose from "mongoose";
-// import SubscriptionTypes from "../types/SubscriptionTypes";
+import SubscriptionType from "../types/subscription";
+import CompanyRepType from "../types/companyRep";
 
-type Subscription = {
-    package: "Free" | "Standard" | "Pro" | "Enterprise";
-    start: Date;
-    end: Date;
-};
+class Subscription implements SubscriptionType {
+    public package!: "Free" | "Standard" | "Pro" | "Enterprise";
+    public end!: Date;
+    public start!: Date;
+}
 
-type CompanyRep = {
-    name: string;
-    email: string;
-    phone: string;
-    address?: string;
-    position: string;
-    [key: string]: any;
-};
+class CompanyRep implements CompanyRepType {
+    public address?: string | undefined;
+    public email!: string;
+    public phone!: string;
+    public position!: string;
+    public name!: string;
+}
 
 export default class CompanySchema extends BaseDocument {
     constructor(
         data: Pick<
             CompanySchema,
-            "name" | "owner" | "representative" | "subScription"
+            "name" | "createdBy" | "representative" | "subScription"
         > &
             Omit<CompanySchema, "_id" | "id" | "updatedAt">
     ) {
         super();
 
-        this.name = data.name;
-        this.subScription = data.subScription;
-        this.representative = data.representative;
+        Object.assign(this, data);
+
         data.createdAt && (this.createdAt = data?.createdAt);
     }
 
@@ -44,12 +43,12 @@ export default class CompanySchema extends BaseDocument {
     public name!: string;
 
     @prop({ required: true })
-    public owner!: mongoose.Types.ObjectId;
+    public createdBy!: mongoose.Types.ObjectId;
 
     @prop({})
     public representative?: CompanyRep;
 
-    @prop({ required: true, enum: ["Free", "Standard", "Pro", "Enterprise"] })
+    @prop({ required: true })
     public subScription!: Subscription;
 
     @prop({ required: false, default: true })

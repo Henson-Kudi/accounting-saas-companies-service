@@ -5,7 +5,7 @@ import Services from "../types/services";
 
 export default function repositoriesInjector(
     database: IDatabase,
-    services?: Services
+    services: Services
 ) {
     return (req: Request, res: Response, next: NextFunction) => {
         const repositories = new RepositoryLocator(database, services);

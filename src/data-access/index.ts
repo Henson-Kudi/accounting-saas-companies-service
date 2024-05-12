@@ -1,12 +1,21 @@
 // THIS IS WHERE WE ABSTRACT THE LOGIC OF OUR MODELS.
 
-import IDatabase, { ICompaniesDb } from "../types/database";
+import IDatabase, { ICompaniesDb, ICompanySecretDb } from "../types/database";
 import { findOne, findById, find, create } from "./Company.db";
+import {
+    createSecret,
+    deleteSecret,
+    getSecret,
+    getSecrets,
+} from "./Secrets.db";
 
 export default class Database implements IDatabase {
-    constructor() {
-        console.log("Injected main db");
-    }
+    CompanyScecretDb: ICompanySecretDb = {
+        createSecret,
+        deleteSecret,
+        getSecret,
+        getSecrets,
+    };
     CompaniesDb: ICompaniesDb = {
         findOne,
         findById,

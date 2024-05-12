@@ -19,22 +19,22 @@ declare module "express" {
             data?: any = {};
         }): this;
         internalServerError?(data: {
-            code?: number = 201;
+            code?: number = 500;
             message?: any = "Internal server error";
             data?: any = {};
         }): this;
         badRequest?(data: {
-            code?: number = 201;
+            code?: number = 422;
             message?: any = "Invalid request";
             data?: any = {};
         }): this;
         unAuthorised?(data: {
-            code?: number = 201;
+            code?: number = 401;
             message?: any = "Unauthorised to access resource";
             data?: any = {};
         }): this;
         pageNotFound?(data: {
-            code?: number = 201;
+            code?: number = 404;
             message?: any = "Sorry page not found";
             data?: any = {};
         }): this;

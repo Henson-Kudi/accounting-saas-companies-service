@@ -1,5 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { FilterQuery, QueryOptions } from "mongoose";
 import CompanySchema from "../../schema-entities/Company.schema";
+import CompanySecretSchema from "../../schema-entities/CompanySecrets.schema";
 
 export interface ICompaniesDb {
     findOne(
@@ -25,6 +26,25 @@ export interface ICompaniesDb {
     ): Promise<FlattenMaps<CompanySchema> | FlattenMaps<CompanySchema>[]>;
 }
 
+export interface ICompanySecretDb {
+    getSecrets(
+        filter: FilterQuery<CompanySecretSchema>,
+        options?: QueryOptions<CompanySecretSchema>
+    ): Promise<CompanySecretSchema[]>;
+
+    getSecret(
+        filter: FilterQuery<CompanySecretSchema>,
+        options?: QueryOptions<CompanySecretSchema>
+    ): Promise<CompanySecretSchema | null>;
+
+    createSecret(
+        data: { [key: string]: any } | CompanySecretSchema
+    ): Promise<CompanySecretSchema>;
+
+    deleteSecret(filter: FilterQuery<CompanySecretSchema>): Promise<number>;
+}
+
 export default interface IDatabase {
     CompaniesDb: ICompaniesDb;
+    CompanyScecretDb: ICompanySecretDb;
 }

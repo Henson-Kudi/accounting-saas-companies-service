@@ -4,7 +4,14 @@ export type ExchangeTypes = "direct" | "fanout" | "topic";
 
 export default interface IRabbitMQService {
     closeConnection(): Promise<void>;
-    publishToQueue(queue: string, task: Buffer): Promise<void>;
+    publishToQueue(
+        queue: string,
+        task: Buffer,
+        options?: {
+            assert?: amqp.Options.AssertQueue;
+            publish?: amqp.Options.Publish;
+        }
+    ): Promise<void>;
     publishToExchange(
         exchange: string,
         exchangeType: ExchangeTypes,

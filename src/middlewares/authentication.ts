@@ -1,54 +1,95 @@
-import { NextFunction, Request, Response } from "express";
-import mongoose from "mongoose";
-import { ForbiddenError } from "../utils/responseData";
+import { Request, Response, NextFunction } from "express";
+import { UnauthorizedMessage } from "../utils/responseHandler/responseMessage";
+import { getConnection } from "../config/amqp";
+import { v4 as uuid } from "uuid";
+import Error from "../utils/error";
 
-export default async function authenticationMiddleWare(
+export default async function authenticateMiddleware(
     req: Request,
     res: Response,
     next: NextFunction
 ) {
     try {
-        // PROCESS
+        const token = req.headers.authorization;
 
-        // Get bearer token for request headers
-        // decode the token
-        // ensure that all required fields are present (issuer, keyId, etc) see https://developer.apple.com/documentation/appstoreserverapi/generating_json_web_tokens_for_api_requests/ for reference
-        // based on payload, fetch public key from public key management system
-        // use public key to verify token
-        // update req.user if token is valid is throw 403/401 error
-
-        const authToken = req.headers.authorization;
-
-        if (!authToken || !authToken.startsWith("Bearer ")) {
-            throw new ForbiddenError();
+        if (!token || !token.startsWith("Bearer")) {
+            throw new UnauthorizedMessage("Invalid token");
         }
 
-        const token = authToken.split(" ")[1];
+        const authToken = token.split(" ")[1];
 
-        // Decode token to ensure all required fields are passed
-        // const decoded = decodeJwt(token);
+        if (!authToken) {
+            throw new UnauthorizedMessage("Invalid token");
+        }
+        // At this level we want to make a request to authentication service to authenticate jwt token and return a response if it is valid or not valid token
 
-        // Check all required fields to ensure validity
+        const authData: any = await makeAuthenticationRequest(authToken);
 
-        // Fetch signer's public key from public key repository
-        // const publicKey = getSignerPublicKey(decoded);
+        if (authData?.error) {
+            const errorData = authData.error;
 
-        // Verify that the token was actualy signed by the signer
-        // const verified = verifyJwt(token, publicKey);
+            throw new Error(
+                errorData?.message ?? "Forbidden",
+                errorData?.code ?? 500
+            );
+        }
 
-        // Fetch user data (if necessary)
-        // const user = await getUser(verified);
+        req.user = authData;
 
-        // throw err if user not found
-        // if (!user) {
-        //     throw new ForbiddenError();
-        // }
-
-        // add user to request
-
-        // req.user = user;
         next();
     } catch (err) {
         next(err);
     }
+}
+
+function makeAuthenticationRequest(token: string) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const connection = await getConnection();
+            const channel = await connection.createChannel();
+
+            const requestQueue = "authenticate-jwt";
+
+            const correlationId = uuid();
+
+            const queue = await channel.assertQueue("", {
+                durable: false,
+            });
+
+            // Consume from reply queue
+            const responsePromise = new Promise((resolve, reject) => {
+                channel.consume(
+                    queue.queue,
+                    (msg) => {
+                        const response = msg!.content.toString();
+
+                        resolve(JSON.parse(response));
+                    },
+                    { noAck: true }
+                );
+            });
+
+            // Publish request to request queue
+            const requestData = {
+                token,
+            };
+
+            channel.assertQueue(requestQueue, { durable: false });
+
+            channel.sendToQueue(
+                requestQueue,
+                Buffer.from(JSON.stringify(requestData)),
+                {
+                    correlationId: correlationId,
+                    replyTo: queue.queue,
+                }
+            );
+
+            // Wait for response
+            const response: any = await responsePromise;
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
 }

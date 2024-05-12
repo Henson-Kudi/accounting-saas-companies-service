@@ -8,7 +8,7 @@ import IDatabase from "../../types/database";
 
 import Services from "../../types/services";
 import ICompanyOwnersRepo from "../../types/CompanyOwnersRepo";
-import CompanyOwnerSchema from "../../schema-entities/CompanyOwner.schema";
+import CompanyOwnerSchema from "../../schema-entities/CompanyStaff.schema";
 import companyOwnerValidator from "../../utils/validators/owners.validator";
 
 export default class CompanyOwnersRepo implements ICompanyOwnersRepo {
