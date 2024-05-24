@@ -4,3 +4,4 @@ logs
 .env
 .history
 .vscode
+compose-dev.yaml

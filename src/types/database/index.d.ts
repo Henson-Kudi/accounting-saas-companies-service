@@ -1,4 +1,4 @@
-import mongoose, { FilterQuery, QueryOptions } from "mongoose";
+import mongoose, { FilterQuery, FlattenMaps, QueryOptions, Types, UpdateQuery } from "mongoose";
 import CompanySchema from "../../schema-entities/Company.schema";
 import CompanySecretSchema from "../../schema-entities/CompanySecrets.schema";
 
@@ -24,6 +24,8 @@ export interface ICompaniesDb {
     create(
         documents: CompanySchema | CompanySchema[]
     ): Promise<FlattenMaps<CompanySchema> | FlattenMaps<CompanySchema>[]>;
+
+    findByIdAndUpdate(id: Types.ObjectId, update: UpdateQuery<Omit<CompanySchema, "createdAt" | "_id" | "id" | 'createdBy'>>, options?: mongoose.QueryOptions<CompanySchema>): Promise<FlattenMaps<CompanySchema> | null>
 }
 
 export interface ICompanySecretDb {

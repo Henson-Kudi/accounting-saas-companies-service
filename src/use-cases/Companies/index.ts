@@ -3,6 +3,7 @@ import {
     FilterQuery,
     ProjectionType,
     QueryOptions,
+    Types,
 } from "mongoose";
 import CompanySchema from "../../schema-entities/Company.schema";
 import ICompaniesRepo from "../../types/CompaniesRepo";
@@ -15,29 +16,27 @@ import {
 } from "./findCompanies";
 import Services from "../../types/services";
 import companyJoiSchema from "../../utils/validators/company.validator";
+import UpdateCompanyDetails from "./UpdateCompanyDetails";
 
 export default class CompaniesRepo implements ICompaniesRepo {
-    constructor(private database: IDatabase, private services?: Services) {}
+    constructor(private database: IDatabase, private services?: Services) { }
 
     async createCompany(
-        data: any
+        data: (Pick<CompanySchema, "name" | "createdBy" | "representative" | "subScription"> & Omit<CompanySchema, "updatedAt" | "_id" | "id">) | CompanySchema
     ): Promise<FlattenMaps<CompanySchema | CompanySchema[]> | null> {
         // validate data with joi
-        await Promise.all(
-            (Array.isArray(data) ? data : [data]).map(
-                async (item: any) => await companyJoiSchema.validateAsync(item)
-            )
-        );
+        await companyJoiSchema.validateAsync(data, {
+            abortEarly: false
+        })
 
-        const newCompany = Array.isArray(data)
-            ? data?.map((item: any) => new CompanySchema(item))
-            : new CompanySchema(data);
+        const newCompany = new CompanySchema(data);
 
         const createdCompany = await createCompany(
             this.database,
             newCompany,
             this.services
         );
+
         return createdCompany;
     }
 
@@ -68,5 +67,12 @@ export default class CompaniesRepo implements ICompaniesRepo {
             projection,
             options
         );
+    }
+
+    async updateCompanyDetails(companyId: string | Types.ObjectId, update: Omit<CompanySchema, "updatedAt" | "_id" | "id" | 'createdBy' | 'createdAt' | 'isActive' | 'isDeleted'>): Promise<FlattenMaps<CompanySchema> | null> {
+
+
+        return await UpdateCompanyDetails(this.database.CompaniesDb, this.services!, companyId, update)
+
     }
 }

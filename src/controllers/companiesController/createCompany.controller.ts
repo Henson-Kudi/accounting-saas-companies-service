@@ -21,16 +21,12 @@ export default async function createCompany(
         if (!authUser || !authUser?.id || !isValidObjectId(authUser?.id)) {
             throw new ForbiddenError();
         }
-
-        console.log("creating company");
         // make sure to validate especially req.body to ensure data correctness
 
-        const data = Array.isArray(req.body)
-            ? req.body?.map((item) => ({ ...item, owner: authUser?.id }))
-            : {
-                  ...req.body,
-                  owner: authUser?.id,
-              };
+        const data = {
+            ...req.body,
+            createdBy: authUser?.id,
+        };
 
         const created = await CompaniesRepo.createCompany(data);
 

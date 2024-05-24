@@ -2,7 +2,7 @@ import Joi from "@hapi/joi";
 
 const schema = Joi.object({
     name: Joi.string().required().min(3).max(52),
-    owner: Joi.string()
+    createdBy: Joi.string()
         .required()
         .regex(/^[0-9a-fA-F]{24}$/)
         .message("Invalid owner id. Please pass valid id."),
@@ -31,7 +31,7 @@ const schema = Joi.object({
     }).required(),
 });
 
-export const updateSchema = Joi.object({
+export const companyUpdateSchema = Joi.object({
     name: Joi.string().optional(),
     representative: Joi.object({
         name: Joi.string().optional(),
@@ -41,9 +41,19 @@ export const updateSchema = Joi.object({
         position: Joi.string().optional(),
     })
         .pattern(Joi.string().required(), Joi.string().required())
-        .optional()
-        .allow("")
-        .allow(null),
+        .optional(),
+    subScription: Joi.object({
+        type: Joi.string()
+            .required()
+            .valid(...["Free", "Standard", "Pro", "Enterprise"]),
+        start: Joi.date().required(),
+        end: Joi.date().when("type", {
+            is: "Free",
+            then: Joi.date().optional(),
+            otherwise: Joi.date().required(),
+        }),
+    }).optional(),
+
 });
 
 // No one should be able to update owner, isActive or isDeleted when trying to update company details. Instead they should make a request to a special route

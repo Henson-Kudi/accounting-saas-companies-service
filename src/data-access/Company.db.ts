@@ -1,4 +1,4 @@
-import mongoose, { FlattenMaps } from "mongoose";
+import mongoose, { FlattenMaps, UpdateQuery } from "mongoose";
 import CompanySchema from "../schema-entities/Company.schema";
 import { Company } from "../models";
 
@@ -61,3 +61,17 @@ export const create = async function (
         throw err;
     }
 };
+
+export const findByIdAndUpdate = async function (id: mongoose.Types.ObjectId, update: UpdateQuery<Omit<CompanySchema, "createdAt" | "_id" | "id" | 'createdBy'>>, options?: mongoose.QueryOptions<CompanySchema>): Promise<FlattenMaps<CompanySchema> | null> {
+    const updated = await Company.findOneAndUpdate({
+        _id: id,
+        isActive: true,
+        isDeleted: false
+    }, update, options ?? { new: true })
+
+    if (!updated) {
+        return null
+    }
+
+    return updated.toJSON()
+}

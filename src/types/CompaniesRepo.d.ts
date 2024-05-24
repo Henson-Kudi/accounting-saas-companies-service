@@ -8,7 +8,7 @@ import CompanySchema from "../schema-entities/Company.schema";
 
 export default interface ICompaniesRepo {
     createCompany(
-        data: CompanySchema | CompanySchema[]
+        data: Pick<CompanySchema, "name" | "createdBy" | "representative" | "subScription"> & Omit<CompanySchema, "updatedAt" | "_id" | "id"> | CompanySchema
     ): Promise<FlattenMaps<CompanySchema | CompanySchema[]> | null>;
     findCompanies(
         params?: FilterQuery<CompanySchema>,

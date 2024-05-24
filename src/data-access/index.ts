@@ -1,7 +1,7 @@
 // THIS IS WHERE WE ABSTRACT THE LOGIC OF OUR MODELS.
 
 import IDatabase, { ICompaniesDb, ICompanySecretDb } from "../types/database";
-import { findOne, findById, find, create } from "./Company.db";
+import { findOne, findById, find, create, findByIdAndUpdate } from "./Company.db";
 import {
     createSecret,
     deleteSecret,
@@ -21,5 +21,6 @@ export default class Database implements IDatabase {
         findById,
         find,
         create,
+        findByIdAndUpdate
     };
 }

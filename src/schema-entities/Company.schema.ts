@@ -1,8 +1,9 @@
-import { prop } from "@typegoose/typegoose";
+import { index, prop, pre } from "@typegoose/typegoose";
 import BaseDocument from "./baseDocument";
 import mongoose from "mongoose";
 import SubscriptionType from "../types/subscription";
 import CompanyRepType from "../types/companyRep";
+import slugify from "../utils/slugify";
 
 class Subscription implements SubscriptionType {
     public package!: "Free" | "Standard" | "Pro" | "Enterprise";
@@ -17,6 +18,17 @@ class CompanyRep implements CompanyRepType {
     public position!: string;
     public name!: string;
 }
+
+@index({
+    nameSlug: 1,
+    createdBy: 1
+}, {
+    unique: true
+})
+
+@pre<CompanySchema>('save', function () {
+    this.nameSlug = slugify(this.name)
+})
 
 export default class CompanySchema extends BaseDocument {
     constructor(
@@ -41,6 +53,16 @@ export default class CompanySchema extends BaseDocument {
         minlength: 3,
     })
     public name!: string;
+
+    @prop({
+        required: true,
+        trim: true,
+        index: true,
+        maxlength: 52,
+        minlength: 3,
+        lowercase: true
+    })
+    public nameSlug!: string;
 
     @prop({ required: true })
     public createdBy!: mongoose.Types.ObjectId;
